@@ -1,15 +1,6 @@
--- SLY X (FINAL V14 - ANIMATION FIX RECOVERY)
+-- SLY X CORE (V15 - MODULAR EDITION)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
--- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
--- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE DISTANCE/SPEED)
--- FEATURE: ULTRA-COMPACT MINIMIZE (REDUCES WIDTH AND HEIGHT)
--- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
--- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK (RADICAL FIX)
--- FIX: AUTO SPAM STOP AFTER 100MS WITHOUT PARRY
--- FIX: MOBILE BUTTON CENTER CLICK & FLUID TOGGLE
--- FIX: PLAYER MOVEMENT (REMOVED VIRTUALINPUTMANAGER CLICKS)
--- FIX: MOBILE BUTTON INFINITE LOOP (DEBOUNCE & DECOUPLING)
--- FIX: ANIMATION FIXES (ROBUST LOADING & CACHING)
+-- OPTIMIZED FOR INJECTION & ANIMATION FIXES
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -452,7 +443,6 @@ local ParrySystem = {
     IsClashing = false
 }
 
--- HYBRID AIM LOGIC (CURSOR FOR PC / CAMERA FOR MOBILE)
 local function getAimDirection()
     local isMobile = GameServices.UserInputService.TouchEnabled and not GameServices.UserInputService.MouseEnabled
     if isMobile then
@@ -678,7 +668,6 @@ GameServices.RunService.Heartbeat:Connect(function()
     if not char or not char.PrimaryPart then return end
     local playerPos = char.PrimaryPart.Position
 
-    -- SMART CLASH AUTO SPAM LOGIC (NEVERZEN STYLE - DISTANCE & SPEED)
     if ParrySystem.AutoSpamEnabled and ball and isTargetingMe(ball) then
         local ballPos = ball.Position
         local velocityData = ball:FindFirstChild("zoomies")
@@ -686,7 +675,6 @@ GameServices.RunService.Heartbeat:Connect(function()
             local ballSpeed = velocityData.VectorVelocity.Magnitude
             local distance = (playerPos - ballPos).Magnitude
             
-            -- NEVERZEN CLASH DETECTION: DISTANCE < 20 AND SPEED > 35
             if distance < 20 and ballSpeed > 35 then
                 if not ParrySystem.AutoSpamming then
                     ParrySystem.AutoSpamming = true
@@ -695,7 +683,6 @@ GameServices.RunService.Heartbeat:Connect(function()
                     startSpam()
                 end
             else
-                -- STOP SPAM IF DISTANCE > 20 OR SPEED < 35 (AFTER 100MS)
                 if ParrySystem.AutoSpamming and (tick() - ParrySystem.LastParryTime > 0.1) then
                     ParrySystem.AutoSpamming = false
                     ParrySystem.IsClashing = false
@@ -745,4 +732,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V14 LOADED (ANIMATION FIX RECOVERY)")
+print("SLY X CORE V15 LOADED")
