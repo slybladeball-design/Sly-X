@@ -1,11 +1,11 @@
--- SLY X (FINAL V8 - AUTONOMOUS)
+-- SLY X (FINAL V9 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
 -- FEATURE: ULTRA-COMPACT MINIMIZE (REDUCES WIDTH AND HEIGHT)
 -- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
--- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK
--- FIX: AUTO SPAM STOP AFTER 500MS WITHOUT PARRY
+-- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK (RADICAL FIX)
+-- FIX: AUTO SPAM STOP AFTER 100MS WITHOUT PARRY
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -514,7 +514,7 @@ local function ToggleManualSpam(state)
 end
 
 -- ═══════════════════════════════════════════════
--- MOBILE SPAM BUTTON SYSTEM
+-- MOBILE SPAM BUTTON SYSTEM (RADICAL MOUSE FIX)
 -- ═══════════════════════════════════════════════
 local MobileSpamButton = Instance.new("TextButton")
 MobileSpamButton.Name = "SlyX_MobileSpam"
@@ -527,6 +527,7 @@ MobileSpamButton.Font = Enum.Font.GothamBold
 MobileSpamButton.TextSize = 12
 MobileSpamButton.Visible = false
 MobileSpamButton.Parent = ScreenGui
+MobileSpamButton.AutoButtonColor = false -- Disable system highlight
 Instance.new("UICorner", MobileSpamButton).CornerRadius = UDim.new(0, 10)
 local MobileStroke = Instance.new("UIStroke", MobileSpamButton)
 MobileStroke.Color = SlyUI_Theme.Accent
@@ -550,6 +551,14 @@ end)
 GameServices.UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
         mDragging = false
+    end
+end)
+
+-- RADICAL MOUSE HIDE LOOP FOR MOBILE
+GameServices.RunService.RenderStepped:Connect(function()
+    if GameServices.UserInputService.TouchEnabled and not GameServices.UserInputService.MouseEnabled then
+        GameServices.UserInputService.MouseIconEnabled = false
+        GameServices.GuiService.SelectedObject = nil -- Prevent UI focus from showing mouse
     end
 end)
 
@@ -607,9 +616,10 @@ MobileSpamButton.MouseButton1Click:Connect(function()
     msToggle:SetValue(ParrySystem.ManualSpamming)
     MobileSpamButton.BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)
     
-    -- FIX: Force hide mouse cursor on mobile after click
+    -- Force hide mouse cursor on mobile after click
     if GameServices.UserInputService.TouchEnabled then
         GameServices.UserInputService.MouseIconEnabled = false
+        GameServices.GuiService.SelectedObject = nil
     end
 end)
 
@@ -677,8 +687,8 @@ GameServices.RunService.Heartbeat:Connect(function()
                 startSpam()
             end
         else
-            -- Deactivation: No parry for 500ms (0.5s)
-            if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 0.5) then
+            -- Deactivation: No parry for 100ms (0.1s)
+            if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 0.1) then
                 ParrySystem.AutoSpamming = false
                 ParrySystem.IsClashing = false
                 spamEnabled = ParrySystem.ManualSpamming
@@ -731,4 +741,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V8 LOADED (SMART AUTO SPAM STOP)")
+print("SLY X FINAL V9 LOADED (ULTRA FAST STOP & MOBILE MOUSE FIX)")
