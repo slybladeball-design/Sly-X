@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 cloneref = cloneref or function(...) return ... end;
 cloenfunction = cloenfunction or function(...) return ... end;
 hookfunction = hookfunction or function(a,b) return a end;
