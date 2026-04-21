@@ -1,11 +1,13 @@
--- SLY X V17 (SOURCE CLAIRE - ANIMATION FIX PRINCEHUB)
--- OPTIMISÉ POUR MADIUM & MOBILE
-print("Chargement SLY X V17...")
+-- SLY X PREMIUM V18 (FINAL STABLE - NO OBFUSCATION)
+-- FEATURES: PREMIUM UI, PRINCEHUB ANIM FIX, SMART SPAM, MINIMIZE
+print("Initialisation SLY X PREMIUM...")
 
-local LP = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
 local RS = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local Rep = game:GetService("ReplicatedStorage")
+local TS = game:GetService("TweenService")
+local LP = Players.LocalPlayer
 
 -- CONFIGURATION
 local Config = {
@@ -13,11 +15,12 @@ local Config = {
     ManualSpam = false,
     AutoSpam = false,
     AnimFix = true,
-    CPS = 120 -- Vitesse de spam
+    Accent = Color3.fromRGB(204, 0, 0)
 }
 
 local AnimCache = {}
 local lastAnim = 0
+local remote = nil
 
 -- MOTEUR D'ANIMATION PRINCEHUB (FLUIDE)
 local function playPrinceAnim()
@@ -27,7 +30,7 @@ local function playPrinceAnim()
     if not hum then return end
     
     local now = os.clock()
-    if (now - lastAnim) < (1/15) then return end -- Limite pour éviter le glitch
+    if (now - lastAnim) < (1/15) then return end
     lastAnim = now
 
     local sword = char:GetAttribute("CurrentlyEquippedSword") or "Default"
@@ -41,48 +44,96 @@ local function playPrinceAnim()
     if AnimCache[sword] then
         local track = hum.Animator:LoadAnimation(AnimCache[sword])
         track.Priority = Enum.AnimationPriority.Action
-        track:Play(0, 1, 2.5) -- Vitesse d'animation PrinceHub
+        track:Play(0, 1, 2.5)
         task.delay(0.1, function() track:Stop(0) end)
     end
 end
 
--- UI PREMIUM LITE (SANS CRASH)
-local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 220, 0, 140)
-main.Position = UDim2.new(0.5, -110, 0.5, -70)
-main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-Instance.new("UICorner", main)
-Instance.new("UIStroke", main).Color = Color3.fromRGB(204, 0, 0)
+-- UI PREMIUM SYSTEM
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScreenGui.Name = "SlyX_Premium_V18"
 
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "SLY X V17"
-title.TextColor3 = Color3.fromRGB(204, 0, 0)
-title.Font = Enum.Font.GothamBold
-title.BackgroundTransparency = 1
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 350, 0, 220)
+Main.Position = UDim2.new(0.5, -175, 0.5, -110)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Color = Config.Accent
+Stroke.Thickness = 2
 
-local status = Instance.new("TextLabel", main)
-status.Size = UDim2.new(1, 0, 1, -30)
-status.Position = UDim2.new(0, 0, 0, 30)
-status.Text = "X: Auto Parry (ON)\nE: Manual Spam (OFF)\nV: Smart Spam (OFF)\nCTRL: Hide"
-status.TextColor3 = Color3.fromRGB(255, 255, 255)
-status.Font = Enum.Font.GothamMedium
-status.BackgroundTransparency = 1
+-- DRAGGABLE
+local dragging, dragInput, dragStart, startPos
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; dragStart = input.Position; startPos = Main.Position
+    end
+end)
+UIS.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+
+-- TITLE & MINIMIZE
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, -40, 0, 40)
+Title.Text = "  SLY X PREMIUM"
+Title.TextColor3 = Config.Accent
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.BackgroundTransparency = 1
+
+local MinBtn = Instance.new("TextButton", Main)
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -35, 0, 5)
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MinBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", MinBtn)
+
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    TS:Create(Main, TweenInfo.new(0.3), {Size = minimized and UDim2.new(0, 150, 0, 40) or UDim2.new(0, 350, 0, 220)}):Play()
+    MinBtn.Text = minimized and "+" or "-"
+end)
+
+-- BUTTONS
+local function CreateToggle(name, pos, default, callback)
+    local Btn = Instance.new("TextButton", Main)
+    Btn.Size = UDim2.new(0, 330, 0, 35)
+    Btn.Position = UDim2.new(0, 10, 0, pos)
+    Btn.BackgroundColor3 = default and Color3.fromRGB(30, 10, 10) or Color3.fromRGB(20, 20, 20)
+    Btn.Text = name .. ": " .. (default and "ON" or "OFF")
+    Btn.TextColor3 = default and Config.Accent or Color3.fromRGB(200, 200, 200)
+    Btn.Font = Enum.Font.GothamMedium
+    Btn.TextSize = 14
+    Instance.new("UICorner", Btn)
+    
+    local state = default
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        Btn.Text = name .. ": " .. (state and "ON" or "OFF")
+        Btn.BackgroundColor3 = state and Color3.fromRGB(30, 10, 10) or Color3.fromRGB(20, 20, 20)
+        Btn.TextColor3 = state and Config.Accent or Color3.fromRGB(200, 200, 200)
+        callback(state)
+    end)
+end
+
+CreateToggle("Auto Parry [X]", 50, Config.AutoParry, function(v) Config.AutoParry = v end)
+CreateToggle("Manual Spam [E]", 90, Config.ManualSpam, function(v) Config.ManualSpam = v end)
+CreateToggle("Smart Auto Spam [V]", 130, Config.AutoSpam, function(v) Config.AutoSpam = v end)
+CreateToggle("Animation Fix", 170, Config.AnimFix, function(v) Config.AnimFix = v end)
 
 -- COMBAT ENGINE
-local remote = nil
 pcall(function() remote = Rep:WaitForChild("Remotes"):WaitForChild("Parry") end)
-
-UIS.InputBegan:Connect(function(i, p)
-    if p then return end
-    if i.KeyCode == Enum.KeyCode.X then Config.AutoParry = not Config.AutoParry
-    elseif i.KeyCode == Enum.KeyCode.E then Config.ManualSpam = not Config.ManualSpam
-    elseif i.KeyCode == Enum.KeyCode.V then Config.AutoSpam = not Config.AutoSpam
-    elseif i.KeyCode == Enum.KeyCode.LeftControl then sg.Enabled = not sg.Enabled end
-    status.Text = string.format("X: Auto Parry (%s)\nE: Manual Spam (%s)\nV: Smart Spam (%s)\nCTRL: Hide",
-        Config.AutoParry and "ON" or "OFF", Config.ManualSpam and "ON" or "OFF", Config.AutoSpam and "ON" or "OFF")
-end)
 
 RS.Heartbeat:Connect(function()
     local ball = nil
@@ -103,4 +154,9 @@ RS.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X V17 CHARGÉ !")
+UIS.InputBegan:Connect(function(i, p)
+    if p then return end
+    if i.KeyCode == Enum.KeyCode.LeftControl then ScreenGui.Enabled = not ScreenGui.Enabled end
+end)
+
+print("SLY X PREMIUM V18 CHARGÉ !")
