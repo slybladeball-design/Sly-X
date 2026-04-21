@@ -1,8 +1,9 @@
--- SLY X (FINAL V3 - AUTONOMOUS)
+-- SLY X (FINAL V4 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE CLASH DETECTION)
 -- FEATURE: MINIMIZE BUTTON (-) IN TOP RIGHT
+-- FIX: AUTO SPAM ANIMATION FIX INTEGRATED
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -475,9 +476,12 @@ local function spawnSpamThread(idx, total, gen)
                 local mp = GameServices.UserInputService:GetMouseLocation()
                 GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, true, game, 1)
                 GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, false, game, 1)
+                
+                -- ANIMATION FIX INTEGRATION (FOR BOTH MANUAL AND AUTO SPAM)
                 if (ParrySystem.ManualSpamming and ParrySystem.ManualSpamAnimationFixEnabled) or (ParrySystem.AutoSpamming and ParrySystem.AutoSpamAnimationFixEnabled) then
                     playPrinceHubSpamAnim()
                 end
+                
                 nextClick = nextClick + CurrentRate
             end
             GameServices.RunService.Heartbeat:Wait()
@@ -716,4 +720,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V3 LOADED (CLASH AUTO SPAM + MINIMIZE BTN)")
+print("SLY X FINAL V4 LOADED (CLASH AUTO SPAM + ANIM FIX)")
