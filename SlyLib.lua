@@ -1,4 +1,4 @@
--- SLY X (FINAL V12 - AUTONOMOUS)
+-- SLY X (FINAL V13 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE DISTANCE/SPEED)
@@ -684,7 +684,6 @@ GameServices.RunService.Heartbeat:Connect(function()
         if velocityData then
             local ballSpeed = velocityData.VectorVelocity.Magnitude
             local distance = (playerPos - ballPos).Magnitude
-            local ping = GameServices.NetworkStats["Data Ping"]:GetValue() / 1000
             
             -- NEVERZEN CLASH DETECTION: DISTANCE < 20 AND SPEED > 35
             if distance < 20 and ballSpeed > 35 then
@@ -745,4 +744,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V12 LOADED (NEVERZEN AUTO SPAM LOGIC)")
+print("SLY X FINAL V13 LOADED (INJECTION FIX & MOVEMENT FIX)")
