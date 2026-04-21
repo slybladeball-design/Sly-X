@@ -1,7 +1,7 @@
--- SLY X (FINAL V2 - AUTONOMOUS)
+-- SLY X (FINAL V3 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
--- FEATURE: SMART AUTO SPAM (NEVERZEN DETECTION + PRINCEHUB CLICKS)
+-- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE CLASH DETECTION)
 -- FEATURE: MINIMIZE BUTTON (-) IN TOP RIGHT
 
 local GameServices = {
@@ -439,7 +439,9 @@ local ParrySystem = {
     ParriedLastBall = false,
     TornadoActiveTime = 0,
     LastKeybindChange = 0,
-    MobileButtonEnabled = false
+    MobileButtonEnabled = false,
+    ParryHistory = {},
+    LastParryTime = 0
 }
 
 -- HYBRID AIM LOGIC (CURSOR FOR PC / CAMERA FOR MOBILE)
@@ -559,7 +561,7 @@ CombatTab:AddToggle("AP Anim Fix", true, function(v) ParrySystem.AutoAnimationFi
 
 local asToggle = CombatTab:AddToggle("Auto Spam", false, function(v) 
     ParrySystem.AutoSpamEnabled = v 
-    -- Logic is handled in Heartbeat for Smart Detection
+    -- Logic is handled in Heartbeat for Smart Clash Detection
 end)
 CombatTab:AddKeybind("Auto Spam Key", Enum.KeyCode.V, function(k) 
     ParrySystem.AutoSpamKeybind = k 
@@ -600,7 +602,7 @@ MobileSpamButton.MouseButton1Click:Connect(function()
 end)
 
 -- ═══════════════════════════════════════════════
--- AUTHENTIC BB ACHAOTIC ENGINE & SMART AUTO SPAM
+-- AUTHENTIC BB ACHAOTIC ENGINE & SMART CLASH AUTO SPAM
 -- ═══════════════════════════════════════════════
 local function getBall()
     for _, ball in pairs(GameServices.Workspace:WaitForChild("Balls"):GetChildren()) do
@@ -644,6 +646,33 @@ GameServices.RunService.Heartbeat:Connect(function()
     if not char or not char.PrimaryPart then return end
     local playerPos = char.PrimaryPart.Position
 
+    -- SMART CLASH AUTO SPAM LOGIC
+    if ParrySystem.AutoSpamEnabled then
+        local now = tick()
+        -- Clean old parries from history (older than 1.5s)
+        for i = #ParrySystem.ParryHistory, 1, -1 do
+            if now - ParrySystem.ParryHistory[i] > 1.5 then
+                table.remove(ParrySystem.ParryHistory, i)
+            end
+        end
+
+        -- Activation: 3 parries in 1.5s = CLASH
+        if #ParrySystem.ParryHistory >= 3 then
+            if not ParrySystem.AutoSpamming then
+                ParrySystem.AutoSpamming = true
+                spamEnabled = true
+                startSpam()
+            end
+        else
+            -- Deactivation: No parry for 1s
+            if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 1.0) then
+                ParrySystem.AutoSpamming = false
+                spamEnabled = ParrySystem.ManualSpamming
+                if not spamEnabled then stopSpam() end
+            end
+        end
+    end
+
     if ball and isTargetingMe(ball) then
         local ballPos = ball.Position
         local velocityData = ball:FindFirstChild("zoomies")
@@ -652,25 +681,6 @@ GameServices.RunService.Heartbeat:Connect(function()
         local ballSpeed = ballVelocity.Magnitude
         local ping = GameServices.NetworkStats["Data Ping"]:GetValue() / 1000
         local distance = (playerPos - ballPos).Magnitude
-
-        -- SMART AUTO SPAM LOGIC (NEVERZEN STYLE)
-        if ParrySystem.AutoSpamEnabled then
-            -- Detection: Ball is close and fast (Duel situation)
-            local spamThreshold = (ballSpeed * 0.4) + (ping * 10)
-            if distance <= math.max(15, spamThreshold) and ballSpeed > 25 then
-                if not ParrySystem.AutoSpamming then
-                    ParrySystem.AutoSpamming = true
-                    spamEnabled = true
-                    startSpam()
-                end
-            else
-                if ParrySystem.AutoSpamming then
-                    ParrySystem.AutoSpamming = false
-                    spamEnabled = ParrySystem.ManualSpamming
-                    if not spamEnabled then stopSpam() end
-                end
-            end
-        end
 
         -- AUTO PARRY LOGIC (ACHAOTIC ENGINE)
         if ParrySystem.AutoEnabled then
@@ -690,6 +700,11 @@ GameServices.RunService.Heartbeat:Connect(function()
                         c[4] = getAimDirection()
                         pcall(f_raw, remote, table.unpack(c))
                         if ParrySystem.AutoAnimationFixEnabled then playAchaoticAnim() end
+                        
+                        -- Record Parry for Clash Detection
+                        ParrySystem.LastParryTime = tick()
+                        table.insert(ParrySystem.ParryHistory, ParrySystem.LastParryTime)
+                        
                         ParrySystem.ParriedLastBall = true
                         task.delay(0.25, function() ParrySystem.ParriedLastBall = false end)
                     end
@@ -698,12 +713,7 @@ GameServices.RunService.Heartbeat:Connect(function()
         end
     else
         ParrySystem.ParriedLastBall = false
-        if ParrySystem.AutoSpamming then
-            ParrySystem.AutoSpamming = false
-            spamEnabled = ParrySystem.ManualSpamming
-            if not spamEnabled then stopSpam() end
-        end
     end
 end)
 
-print("SLY X FINAL V2 LOADED (SMART AUTO SPAM + MINIMIZE BTN)")
+print("SLY X FINAL V3 LOADED (CLASH AUTO SPAM + MINIMIZE BTN)")
