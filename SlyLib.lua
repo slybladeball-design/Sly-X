@@ -1,4 +1,4 @@
--- SLY X (FINAL V9 - AUTONOMOUS)
+-- SLY X (FINAL V10 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
@@ -6,6 +6,7 @@
 -- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
 -- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK (RADICAL FIX)
 -- FIX: AUTO SPAM STOP AFTER 100MS WITHOUT PARRY
+-- FIX: MOBILE BUTTON CENTER CLICK & FLUID TOGGLE
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -478,9 +479,19 @@ local function spawnSpamThread(idx, total, gen)
                     c[4] = getAimDirection()
                     pcall(f_raw, remote, table.unpack(c)) 
                 end
-                local mp = GameServices.UserInputService:GetMouseLocation()
-                GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, true, game, 1)
-                GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, false, game, 1)
+                
+                -- CLICK LOGIC
+                local isMobile = GameServices.UserInputService.TouchEnabled and not GameServices.UserInputService.MouseEnabled
+                local clickPos
+                if isMobile then
+                    local viewportSize = GameServices.Camera.ViewportSize
+                    clickPos = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+                else
+                    clickPos = GameServices.UserInputService:GetMouseLocation()
+                end
+                
+                GameServices.VirtualInputManager:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, true, game, 1)
+                GameServices.VirtualInputManager:SendMouseButtonEvent(clickPos.X, clickPos.Y, 0, false, game, 1)
                 
                 if (ParrySystem.ManualSpamming and ParrySystem.ManualSpamAnimationFixEnabled) or (ParrySystem.AutoSpamming and ParrySystem.AutoSpamAnimationFixEnabled) then
                     playPrinceHubSpamAnim()
@@ -514,7 +525,7 @@ local function ToggleManualSpam(state)
 end
 
 -- ═══════════════════════════════════════════════
--- MOBILE SPAM BUTTON SYSTEM (RADICAL MOUSE FIX)
+-- MOBILE SPAM BUTTON SYSTEM (FLUID TOGGLE)
 -- ═══════════════════════════════════════════════
 local MobileSpamButton = Instance.new("TextButton")
 MobileSpamButton.Name = "SlyX_MobileSpam"
@@ -527,7 +538,7 @@ MobileSpamButton.Font = Enum.Font.GothamBold
 MobileSpamButton.TextSize = 12
 MobileSpamButton.Visible = false
 MobileSpamButton.Parent = ScreenGui
-MobileSpamButton.AutoButtonColor = false -- Disable system highlight
+MobileSpamButton.AutoButtonColor = false
 Instance.new("UICorner", MobileSpamButton).CornerRadius = UDim.new(0, 10)
 local MobileStroke = Instance.new("UIStroke", MobileSpamButton)
 MobileStroke.Color = SlyUI_Theme.Accent
@@ -558,7 +569,7 @@ end)
 GameServices.RunService.RenderStepped:Connect(function()
     if GameServices.UserInputService.TouchEnabled and not GameServices.UserInputService.MouseEnabled then
         GameServices.UserInputService.MouseIconEnabled = false
-        GameServices.GuiService.SelectedObject = nil -- Prevent UI focus from showing mouse
+        GameServices.GuiService.SelectedObject = nil
     end
 end)
 
@@ -614,9 +625,14 @@ end)
 MobileSpamButton.MouseButton1Click:Connect(function()
     ToggleManualSpam(not ParrySystem.ManualSpamming)
     msToggle:SetValue(ParrySystem.ManualSpamming)
-    MobileSpamButton.BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)
     
-    -- Force hide mouse cursor on mobile after click
+    -- FLUID TOGGLE ANIMATION
+    SmoothTween(MobileSpamButton, {0.2}, {BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)})
+    SmoothTween(MobileSpamButton, {0.1, Enum.EasingStyle.Back}, {Size = UDim2.new(0, 55, 0, 55)})
+    task.delay(0.1, function()
+        SmoothTween(MobileSpamButton, {0.1}, {Size = UDim2.new(0, 50, 0, 50)})
+    end)
+    
     if GameServices.UserInputService.TouchEnabled then
         GameServices.UserInputService.MouseIconEnabled = false
         GameServices.GuiService.SelectedObject = nil
@@ -654,7 +670,7 @@ GameServices.UserInputService.InputBegan:Connect(function(input, processed)
         elseif input.KeyCode == ParrySystem.ManualSpamKeybind then
             ToggleManualSpam(not ParrySystem.ManualSpamming)
             msToggle:SetValue(ParrySystem.ManualSpamming)
-            MobileSpamButton.BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)
+            SmoothTween(MobileSpamButton, {0.2}, {BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)})
         elseif input.KeyCode == ParrySystem.AutoSpamKeybind then
             ParrySystem.AutoSpamEnabled = not ParrySystem.AutoSpamEnabled
             asToggle:SetValue(ParrySystem.AutoSpamEnabled)
@@ -671,14 +687,12 @@ GameServices.RunService.Heartbeat:Connect(function()
     -- SMART CLASH AUTO SPAM LOGIC (NEVERZEN STYLE)
     if ParrySystem.AutoSpamEnabled then
         local now = tick()
-        -- Clean old parries from history (older than 1.5s)
         for i = #ParrySystem.ParryHistory, 1, -1 do
             if now - ParrySystem.ParryHistory[i] > 1.5 then
                 table.remove(ParrySystem.ParryHistory, i)
             end
         end
 
-        -- Activation: 3 parries in 1.5s = CLASH
         if #ParrySystem.ParryHistory >= 3 then
             if not ParrySystem.AutoSpamming then
                 ParrySystem.AutoSpamming = true
@@ -687,7 +701,6 @@ GameServices.RunService.Heartbeat:Connect(function()
                 startSpam()
             end
         else
-            -- Deactivation: No parry for 100ms (0.1s)
             if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 0.1) then
                 ParrySystem.AutoSpamming = false
                 ParrySystem.IsClashing = false
@@ -706,8 +719,6 @@ GameServices.RunService.Heartbeat:Connect(function()
         local ping = GameServices.NetworkStats["Data Ping"]:GetValue() / 1000
         local distance = (playerPos - ballPos).Magnitude
 
-        -- AUTO PARRY LOGIC (ACHAOTIC ENGINE)
-        -- SMART HANDOVER: If clashing, Auto Parry is disabled to let Spam take over (No Double Clicks)
         if ParrySystem.AutoEnabled and not ParrySystem.IsClashing then
             local directionToPlayer = (playerPos - ballPos).Unit
             local ballDirection = ballVelocity.Unit
@@ -726,7 +737,6 @@ GameServices.RunService.Heartbeat:Connect(function()
                         pcall(f_raw, remote, table.unpack(c))
                         if ParrySystem.AutoAnimationFixEnabled then playAchaoticAnim() end
                         
-                        -- Record Parry for Clash Detection
                         ParrySystem.LastParryTime = tick()
                         table.insert(ParrySystem.ParryHistory, ParrySystem.LastParryTime)
                         
@@ -741,4 +751,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V9 LOADED (ULTRA FAST STOP & MOBILE MOUSE FIX)")
+print("SLY X FINAL V10 LOADED (FLUID TOGGLE & CENTER CLICK)")
