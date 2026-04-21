@@ -1,8 +1,8 @@
--- SLY X (FINAL V5 - AUTONOMOUS)
+-- SLY X (FINAL V6 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
--- FEATURE: MINIMIZE BUTTON (-) IN TOP RIGHT
+-- FEATURE: ULTRA-COMPACT MINIMIZE (REDUCES WIDTH AND HEIGHT)
 -- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
 
 local GameServices = {
@@ -121,10 +121,13 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         MinimizeBtn.Text = "+"
-        SmoothTween(MainFrame, {0.3}, {Size = UDim2.new(0, 580, 0, 45)})
+        -- ULTRA-COMPACT: Reduce both Width and Height
+        SmoothTween(MainFrame, {0.3}, {Size = UDim2.new(0, 120, 0, 45)})
+        MinimizeBtn.Position = UDim2.new(1, -35, 0.5, -15)
     else
         MinimizeBtn.Text = "-"
         SmoothTween(MainFrame, {0.3}, {Size = originalSize})
+        MinimizeBtn.Position = UDim2.new(1, -40, 0.5, -15)
     end
 end)
 
@@ -722,4 +725,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V5 LOADED (NO DOUBLE CLICKS + SMART HANDOVER)")
+print("SLY X FINAL V6 LOADED (ULTRA-COMPACT MINIMIZE)")
