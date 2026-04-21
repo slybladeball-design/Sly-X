@@ -1,7 +1,8 @@
--- SLY X (FINAL AUTONOMOUS VERSION)
+-- SLY X (FINAL V2 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
--- FEATURE: MOBILE SPAM BUTTON (SETTINGS TOGGLE)
+-- FEATURE: SMART AUTO SPAM (NEVERZEN DETECTION + PRINCEHUB CLICKS)
+-- FEATURE: MINIMIZE BUTTON (-) IN TOP RIGHT
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -102,6 +103,29 @@ Title.BackgroundTransparency = 1
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
 Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- MINIMIZE BUTTON (-) IN TOP RIGHT
+local MinimizeBtn = Instance.new("TextButton", TitleBar)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+MinimizeBtn.Position = UDim2.new(1, -40, 0.5, -15)
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = SlyUI_Theme.Text
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 24
+
+local isMinimized = false
+local originalSize = MainFrame.Size
+MinimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        MinimizeBtn.Text = "+"
+        SmoothTween(MainFrame, {0.3}, {Size = UDim2.new(0, 580, 0, 45)})
+    else
+        MinimizeBtn.Text = "-"
+        SmoothTween(MainFrame, {0.3}, {Size = originalSize})
+    end
+end)
 
 local TabContainer = Instance.new("Frame", MainFrame)
 TabContainer.Size = UDim2.new(0, 140, 1, -60)
@@ -535,9 +559,7 @@ CombatTab:AddToggle("AP Anim Fix", true, function(v) ParrySystem.AutoAnimationFi
 
 local asToggle = CombatTab:AddToggle("Auto Spam", false, function(v) 
     ParrySystem.AutoSpamEnabled = v 
-    ParrySystem.AutoSpamming = v
-    spamEnabled = ParrySystem.ManualSpamming or v
-    if v then startSpam() elseif not ParrySystem.ManualSpamming then stopSpam() end
+    -- Logic is handled in Heartbeat for Smart Detection
 end)
 CombatTab:AddKeybind("Auto Spam Key", Enum.KeyCode.V, function(k) 
     ParrySystem.AutoSpamKeybind = k 
@@ -578,7 +600,7 @@ MobileSpamButton.MouseButton1Click:Connect(function()
 end)
 
 -- ═══════════════════════════════════════════════
--- AUTHENTIC BB ACHAOTIC ENGINE
+-- AUTHENTIC BB ACHAOTIC ENGINE & SMART AUTO SPAM
 -- ═══════════════════════════════════════════════
 local function getBall()
     for _, ball in pairs(GameServices.Workspace:WaitForChild("Balls"):GetChildren()) do
@@ -617,23 +639,45 @@ GameServices.UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 GameServices.RunService.Heartbeat:Connect(function()
-    if ParrySystem.AutoEnabled then
-        local ball = getBall()
-        if ball and isTargetingMe(ball) then
-            local char = LocalPlayerData.Player.Character
-            if not char or not char.PrimaryPart then return end
-            local ballPos = ball.Position
-            local playerPos = char.PrimaryPart.Position
-            local velocityData = ball:FindFirstChild("zoomies")
-            if not velocityData then return end
-            local ballVelocity = velocityData.VectorVelocity
-            local ballSpeed = ballVelocity.Magnitude
-            local ping = GameServices.NetworkStats["Data Ping"]:GetValue() / 1000
+    local ball = getBall()
+    local char = LocalPlayerData.Player.Character
+    if not char or not char.PrimaryPart then return end
+    local playerPos = char.PrimaryPart.Position
+
+    if ball and isTargetingMe(ball) then
+        local ballPos = ball.Position
+        local velocityData = ball:FindFirstChild("zoomies")
+        if not velocityData then return end
+        local ballVelocity = velocityData.VectorVelocity
+        local ballSpeed = ballVelocity.Magnitude
+        local ping = GameServices.NetworkStats["Data Ping"]:GetValue() / 1000
+        local distance = (playerPos - ballPos).Magnitude
+
+        -- SMART AUTO SPAM LOGIC (NEVERZEN STYLE)
+        if ParrySystem.AutoSpamEnabled then
+            -- Detection: Ball is close and fast (Duel situation)
+            local spamThreshold = (ballSpeed * 0.4) + (ping * 10)
+            if distance <= math.max(15, spamThreshold) and ballSpeed > 25 then
+                if not ParrySystem.AutoSpamming then
+                    ParrySystem.AutoSpamming = true
+                    spamEnabled = true
+                    startSpam()
+                end
+            else
+                if ParrySystem.AutoSpamming then
+                    ParrySystem.AutoSpamming = false
+                    spamEnabled = ParrySystem.ManualSpamming
+                    if not spamEnabled then stopSpam() end
+                end
+            end
+        end
+
+        -- AUTO PARRY LOGIC (ACHAOTIC ENGINE)
+        if ParrySystem.AutoEnabled then
             local directionToPlayer = (playerPos - ballPos).Unit
             local ballDirection = ballVelocity.Unit
             local dotProduct = ballDirection:Dot(directionToPlayer)
             if dotProduct > 0.25 then
-                local distance = (playerPos - ballPos).Magnitude
                 local hitboxSize = getAchaoticHitbox(ball, playerPos, ballPos, ballSpeed, ping)
                 if ball:FindFirstChild("AeroDynamicSlashVFX") then ParrySystem.TornadoActiveTime = tick() end
                 local tornado = GameServices.Workspace.Runtime:FindFirstChild("Tornado")
@@ -651,10 +695,15 @@ GameServices.RunService.Heartbeat:Connect(function()
                     end
                 end
             end
-        else
-            ParrySystem.ParriedLastBall = false
+        end
+    else
+        ParrySystem.ParriedLastBall = false
+        if ParrySystem.AutoSpamming then
+            ParrySystem.AutoSpamming = false
+            spamEnabled = ParrySystem.ManualSpamming
+            if not spamEnabled then stopSpam() end
         end
     end
 end)
 
-print("SLY X FINAL LOADED (ALL-IN-ONE)")
+print("SLY X FINAL V2 LOADED (SMART AUTO SPAM + MINIMIZE BTN)")
