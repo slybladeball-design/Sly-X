@@ -1,9 +1,10 @@
--- SLY X (FINAL V6 - AUTONOMOUS)
+-- SLY X (FINAL V7 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
 -- FEATURE: ULTRA-COMPACT MINIMIZE (REDUCES WIDTH AND HEIGHT)
 -- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
+-- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -121,7 +122,6 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         MinimizeBtn.Text = "+"
-        -- ULTRA-COMPACT: Reduce both Width and Height
         SmoothTween(MainFrame, {0.3}, {Size = UDim2.new(0, 120, 0, 45)})
         MinimizeBtn.Position = UDim2.new(1, -35, 0.5, -15)
     else
@@ -605,6 +605,11 @@ MobileSpamButton.MouseButton1Click:Connect(function()
     ToggleManualSpam(not ParrySystem.ManualSpamming)
     msToggle:SetValue(ParrySystem.ManualSpamming)
     MobileSpamButton.BackgroundColor3 = ParrySystem.ManualSpamming and SlyUI_Theme.Accent or Color3.fromRGB(40, 40, 40)
+    
+    -- FIX: Force hide mouse cursor on mobile after click
+    if GameServices.UserInputService.TouchEnabled then
+        GameServices.UserInputService.MouseIconEnabled = false
+    end
 end)
 
 -- ═══════════════════════════════════════════════
@@ -725,4 +730,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V6 LOADED (ULTRA-COMPACT MINIMIZE)")
+print("SLY X FINAL V7 LOADED (MOBILE CURSOR FIX)")
