@@ -1,10 +1,11 @@
--- SLY X (FINAL V7 - AUTONOMOUS)
+-- SLY X (FINAL V8 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
 -- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
 -- FEATURE: ULTRA-COMPACT MINIMIZE (REDUCES WIDTH AND HEIGHT)
 -- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
 -- FIX: NO MOUSE CURSOR ON MOBILE BUTTON CLICK
+-- FIX: AUTO SPAM STOP AFTER 500MS WITHOUT PARRY
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -676,8 +677,8 @@ GameServices.RunService.Heartbeat:Connect(function()
                 startSpam()
             end
         else
-            -- Deactivation: No parry for 1s
-            if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 1.0) then
+            -- Deactivation: No parry for 500ms (0.5s)
+            if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 0.5) then
                 ParrySystem.AutoSpamming = false
                 ParrySystem.IsClashing = false
                 spamEnabled = ParrySystem.ManualSpamming
@@ -730,4 +731,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V7 LOADED (MOBILE CURSOR FIX)")
+print("SLY X FINAL V8 LOADED (SMART AUTO SPAM STOP)")
