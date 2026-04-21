@@ -1,9 +1,9 @@
--- SLY X (FINAL V4 - AUTONOMOUS)
+-- SLY X (FINAL V5 - AUTONOMOUS)
 -- FULL INTEGRATION: UI PREMIUM + ACHAOTIC ENGINE + PRINCEHUB SPAM
 -- FEATURE: HYBRID AIM (CURSOR PC / CAMERA MOBILE)
--- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE CLASH DETECTION)
+-- FEATURE: SMART CLASH AUTO SPAM (NEVERZEN STYLE TRANSITION)
 -- FEATURE: MINIMIZE BUTTON (-) IN TOP RIGHT
--- FIX: AUTO SPAM ANIMATION FIX INTEGRATED
+-- FIX: NO DOUBLE CLICKS (SMART HANDOVER LOGIC)
 
 local GameServices = {
     RunService = game:GetService("RunService"),
@@ -442,7 +442,8 @@ local ParrySystem = {
     LastKeybindChange = 0,
     MobileButtonEnabled = false,
     ParryHistory = {},
-    LastParryTime = 0
+    LastParryTime = 0,
+    IsClashing = false
 }
 
 -- HYBRID AIM LOGIC (CURSOR FOR PC / CAMERA FOR MOBILE)
@@ -477,7 +478,6 @@ local function spawnSpamThread(idx, total, gen)
                 GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, true, game, 1)
                 GameServices.VirtualInputManager:SendMouseButtonEvent(mp.X, mp.Y, 0, false, game, 1)
                 
-                -- ANIMATION FIX INTEGRATION (FOR BOTH MANUAL AND AUTO SPAM)
                 if (ParrySystem.ManualSpamming and ParrySystem.ManualSpamAnimationFixEnabled) or (ParrySystem.AutoSpamming and ParrySystem.AutoSpamAnimationFixEnabled) then
                     playPrinceHubSpamAnim()
                 end
@@ -565,7 +565,6 @@ CombatTab:AddToggle("AP Anim Fix", true, function(v) ParrySystem.AutoAnimationFi
 
 local asToggle = CombatTab:AddToggle("Auto Spam", false, function(v) 
     ParrySystem.AutoSpamEnabled = v 
-    -- Logic is handled in Heartbeat for Smart Clash Detection
 end)
 CombatTab:AddKeybind("Auto Spam Key", Enum.KeyCode.V, function(k) 
     ParrySystem.AutoSpamKeybind = k 
@@ -650,7 +649,7 @@ GameServices.RunService.Heartbeat:Connect(function()
     if not char or not char.PrimaryPart then return end
     local playerPos = char.PrimaryPart.Position
 
-    -- SMART CLASH AUTO SPAM LOGIC
+    -- SMART CLASH AUTO SPAM LOGIC (NEVERZEN STYLE)
     if ParrySystem.AutoSpamEnabled then
         local now = tick()
         -- Clean old parries from history (older than 1.5s)
@@ -664,6 +663,7 @@ GameServices.RunService.Heartbeat:Connect(function()
         if #ParrySystem.ParryHistory >= 3 then
             if not ParrySystem.AutoSpamming then
                 ParrySystem.AutoSpamming = true
+                ParrySystem.IsClashing = true
                 spamEnabled = true
                 startSpam()
             end
@@ -671,6 +671,7 @@ GameServices.RunService.Heartbeat:Connect(function()
             -- Deactivation: No parry for 1s
             if ParrySystem.AutoSpamming and (now - ParrySystem.LastParryTime > 1.0) then
                 ParrySystem.AutoSpamming = false
+                ParrySystem.IsClashing = false
                 spamEnabled = ParrySystem.ManualSpamming
                 if not spamEnabled then stopSpam() end
             end
@@ -687,7 +688,8 @@ GameServices.RunService.Heartbeat:Connect(function()
         local distance = (playerPos - ballPos).Magnitude
 
         -- AUTO PARRY LOGIC (ACHAOTIC ENGINE)
-        if ParrySystem.AutoEnabled then
+        -- SMART HANDOVER: If clashing, Auto Parry is disabled to let Spam take over (No Double Clicks)
+        if ParrySystem.AutoEnabled and not ParrySystem.IsClashing then
             local directionToPlayer = (playerPos - ballPos).Unit
             local ballDirection = ballVelocity.Unit
             local dotProduct = ballDirection:Dot(directionToPlayer)
@@ -720,4 +722,4 @@ GameServices.RunService.Heartbeat:Connect(function()
     end
 end)
 
-print("SLY X FINAL V4 LOADED (CLASH AUTO SPAM + ANIM FIX)")
+print("SLY X FINAL V5 LOADED (NO DOUBLE CLICKS + SMART HANDOVER)")
