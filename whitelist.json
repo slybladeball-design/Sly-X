@@ -1,1 +1,13 @@
-["775d8eca-65ae-487e-ab05-3fe128252662"]
+{
+  "version": 1,
+  "updated": "2026-04-28",
+  "enabled": true,
+  "users": [
+    {
+      "username": "Owner",
+      "key": "775d8eca-65ae-487e-ab05-3fe128252662",
+      "expiry": "never",
+      "note": "Owner - accès permanent"
+    }
+  ]
+}
