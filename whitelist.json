@@ -4,10 +4,16 @@
   "enabled": true,
   "users": [
     {
-      "username": "Owner2",
+      "username": "owner",
       "key": "775d8eca-65ae-487e-ab05-3fe128252662",
       "expiry": "never",
       "note": "Owner - accès permanent"
+    }
+    {
+      "username": "player2",
+      "key": "EF247B30-D23B-42FA-8CE9-C84BB593B1FD",
+      "expiry": "never",
+      "note": ""
     }
   ]
 }
