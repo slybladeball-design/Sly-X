@@ -20,6 +20,12 @@
       "key": "E9FA7EAB-F37B-4BCE-9CE8-A6094D53FEA4",
       "expiry": "never",
       "note": ""
+    },
+    {
+      "username": "owner",
+      "key": "00330-80000-00000-AA629",
+      "expiry": "never",
+      "note": "Owner - accès permanent"
     }
   ]
 }
